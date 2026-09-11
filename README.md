@@ -56,6 +56,12 @@ On first boot the DB is empty, so the app **auto-seeds** Bloom Salon (9 services
 4 stylists, ~15 bookings, 1 stylist-holiday block). Set `SEED_ON_START=false` to
 skip. Re-seed anytime with `POST /api/v1/admin/seed?companyId=salon-01`.
 
+### Expose it publicly (ngrok)
+
+To let a hosted LiveKit agent or a teammate reach your local server, put an ngrok
+tunnel in front of it — see **[NGROK.md](./NGROK.md)** (install, `ngrok http 3000`,
+public HTTPS URL, running the smoke test through the tunnel, and security notes).
+
 ### Run without Docker
 
 Start just the emulator in Docker and the app on the host:

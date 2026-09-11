@@ -199,6 +199,17 @@ Runs one request per endpoint, checks status codes and key fields, and prints a
 
 ---
 
+## Testing through a public URL (ngrok)
+
+Every command here takes a base URL. To test against a public tunnel instead of
+localhost, set `B` (or `BASE_URL` for the script) to your ngrok base — see
+**[NGROK.md](./NGROK.md)**:
+
+```bash
+B=https://<your-ngrok>.ngrok-free.app/api/v1
+BASE_URL=$B ./scripts/smoke-test.sh
+```
+
 ## Swagger (manual/interactive testing)
 
 Open **http://localhost:3000/docs** — try any endpoint from the browser. Raw spec
