@@ -226,7 +226,19 @@ export async function getAvailability(params: AvailabilityParams) {
   const { bookings, blocks } = await fetchBookingsAndBlocks(params.companyId);
   const nowMs = DateTime.now().setZone(company.timezone).toMillis();
 
-  const dates = params.date ? [params.date] : dateRange(params.dateFrom!, params.dateTo!);
+  // Resolve the date span. Callers may give a single date, a range, just one end,
+  // or nothing at all — in which case default to the next 7 days (never error).
+  let dates: string[];
+  if (params.date) {
+    dates = [params.date];
+  } else if (params.dateFrom && params.dateTo) {
+    dates = dateRange(params.dateFrom, params.dateTo);
+  } else if (params.dateFrom || params.dateTo) {
+    dates = [(params.dateFrom || params.dateTo)!];
+  } else {
+    const today = DateTime.now().setZone(company.timezone);
+    dates = dateRange(today.toFormat('yyyy-MM-dd'), today.plus({ days: 6 }).toFormat('yyyy-MM-dd'));
+  }
   if (dates.length > 14) {
     throw new ApiError(
       'VALIDATION_ERROR',

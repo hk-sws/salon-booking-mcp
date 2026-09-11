@@ -11,6 +11,8 @@
 set -u
 B="${BASE_URL:-http://localhost:3000/api/v1}"
 pass=0; fail=0; skip=0
+# Unique per-run id so idempotency keys don't collide with earlier runs.
+RID="$(date +%s)-$$"
 
 # --- helpers ---------------------------------------------------------------
 # run METHOD URL [JSON_BODY] [EXTRA_CURL_ARGS...]  -> sets $CODE and $BODY
@@ -116,14 +118,14 @@ echo
 echo "Bookings"
 BODYJSON="{\"serviceId\":\"svc_haircut\",\"stylistId\":\"$S0_STY\",\"date\":\"$S0_DATE\",\"start\":\"$S0_START\",\"customer\":{\"name\":\"Smoke\",\"phone\":\"9000000777\",\"email\":\"smoke@example.com\"}}"
 
-run POST "$B/bookings" "$BODYJSON" -H 'Idempotency-Key: smoke-1'
+run POST "$B/bookings" "$BODYJSON" -H "Idempotency-Key: smoke-$RID-1"
 BID="$(pyget "['bookingId']")"
 [ "$CODE" = "201" ] && [ -n "$BID" ] && ok "POST /bookings -> 201 ($BID)" || no "POST /bookings" show
 
-run POST "$B/bookings" "$BODYJSON" -H 'Idempotency-Key: smoke-1'
+run POST "$B/bookings" "$BODYJSON" -H "Idempotency-Key: smoke-$RID-1"
 [ "$(pyget "['bookingId']")" = "$BID" ] && ok "POST /bookings idempotent replay (same id)" || no "idempotent replay" show
 
-run POST "$B/bookings" "$BODYJSON" -H 'Idempotency-Key: smoke-2'
+run POST "$B/bookings" "$BODYJSON" -H "Idempotency-Key: smoke-$RID-2"
 [ "$CODE" = "409" ] && [ "$(pyget "['error']")" = "SLOT_TAKEN" ] && ok "POST /bookings double-book -> 409 + alternatives" || no "double-book 409" show
 
 run GET "$B/bookings/find?phone=9000000777"
