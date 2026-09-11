@@ -139,9 +139,9 @@ curl -s "$B/bookings/find?companyId=salon-01&phone=9000000003" | jq
 
 ```bash
 curl -s -X POST $B/notifications/confirmation -H 'Content-Type: application/json' \
-  -d "{\"companyId\":\"salon-01\",\"bookingId\":\"$BID\",\"channels\":[\"email\",\"sms\"]}" | jq
+  -d "{\"companyId\":\"salon-01\",\"bookingId\":\"$BID\",\"channels\":[\"email\"]}" | jq
 ```
-✅ `202` with per-channel status (email logged to console, sms stubbed). Check the
+✅ `202` with per-channel status (email logged to console). Check the
 `docker compose logs app` output to see the rendered message.
 
 ## 10. Reschedule  (`POST /bookings/:id/reschedule`)

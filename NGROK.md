@@ -126,9 +126,8 @@ curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url'
 
 ## Securing the tunnel
 
-The API has open CORS, no auth, and a 100 req/min/IP rate limit. That rate limit is
-abuse-mitigation, **not** access control. While the tunnel is public, anyone with the
-URL can read and write salon data. Options, cheapest first:
+The API has open CORS and no auth or rate limiting. While the tunnel is public,
+anyone with the URL can read and write salon data. Options, cheapest first:
 
 1. **Keep it short-lived.** Only run `ngrok` while actively testing; `Ctrl-C` when done.
 2. **ngrok Basic Auth** — require a username/password at the edge:

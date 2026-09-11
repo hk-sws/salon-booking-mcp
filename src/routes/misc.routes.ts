@@ -38,18 +38,18 @@ router.post('/messages',
  * /notifications/confirmation:
  *   post:
  *     tags: [Notifications]
- *     summary: Send a booking confirmation. Pluggable providers; failure never fails a booking.
+ *     summary: Send a booking confirmation email. Pluggable providers; failure never fails a booking.
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             required: [companyId, bookingId, channels]
+ *             required: [companyId, bookingId]
  *             properties:
  *               companyId: { type: string }
  *               bookingId: { type: string }
- *               channels: { type: array, items: { type: string, enum: [email, sms] } }
+ *               channels: { type: array, items: { type: string, enum: [email] }, default: [email] }
  *     responses:
  *       202: { description: Per-channel send status }
  */

@@ -15,6 +15,10 @@ appointment-based business without code changes.
 
 ---
 
+> 📐 **[ARCHITECTURE.md](./ARCHITECTURE.md)** has Mermaid diagrams: system context,
+> the layered request pipeline, data model, the availability engine, and the
+> end-to-end booking sequence.
+
 ## Architecture (MVC + Service)
 
 ```
@@ -27,7 +31,7 @@ src/
                  message, notification, dateResolve, admin                     ← business logic
   controllers/   read, availability, bookings, misc, admin                     ← Controller
   routes/        *.routes.ts (Express + OpenAPI JSDoc), index.ts               ← View (API surface)
-  providers/     notification.ts (console / smtp / sms)
+  providers/     notification.ts (email: console / smtp / brevo)
   lib/           spoken, time, errors, cache, ids
   db/            seed.ts
   app.ts, index.ts
@@ -108,7 +112,7 @@ resolve_date  "next Thursday"        → 2026-09-24
 check_availability svc_haircut, that date, limit 6
                                      → offer slots, caller picks 14:00 with Kavya
 create_booking (Idempotency-Key)     → 201 { reference "B370", confirmedSpoken }
-send_confirmation email+sms          → 202 per-channel status
+send_confirmation email               → 202 per-channel status
 # later:
 find_booking by phone                → withinCancellationWindow computed
 cancel_booking                       → 200, OR 422 action:CREATE_MESSAGE if <24h,
@@ -119,29 +123,57 @@ cancel_booking                       → 200, OR 422 action:CREATE_MESSAGE if <2
 
 ---
 
-## Firestore credentials — what to share for production
+## Firestore credentials (real Cloud Firestore / Firebase)
 
-**Local dev needs nothing** (the emulator ignores auth). For a real Cloud Firestore
-database (e.g. when deploying to Azure), share:
+**Local dev with the emulator needs nothing** (it ignores auth). To connect to the
+real project you need a **service-account key** — base64-encoded into `.env`.
 
-1. **GCP project id** — e.g. `bloom-salon-prod`.
-2. **Firestore in Native mode** enabled in that project (one-time, in the GCP console).
-3. **A service-account JSON key** with Firestore access — role **`Cloud Datastore User`**
-   (`roles/datastore.user`), enough for read/write. Create under
-   *IAM & Admin → Service Accounts → Keys → Add key (JSON)*.
-4. *(Optional)* the Firestore **region/location** you chose (e.g. `asia-south1`),
-   for latency awareness.
+### How to get the service-account key
 
-Then set, and leave `FIRESTORE_EMULATOR_HOST` **unset**:
+1. **Firebase console** → open project **`salon-agent-392ac`**.
+2. ⚙️ **Project settings** → **Service accounts** tab.
+3. Click **Generate new private key** → **Generate key**. A JSON file downloads.
+   *(This is a service-account key — despite the name, it is NOT the Android
+   `google-services.json`. In this repo the file happens to be saved as
+   `google-services.json`; the contents are what matter: `"type":"service_account"`.)*
+4. Put that file in the project root (any name; this repo uses `google-services.json`).
+   It is **git-ignored** — never commit it.
+5. *(One-time)* Make sure **Firestore is created in Native mode** (Firebase console →
+   Build → Firestore Database). Region here: **`asia-south1`**.
+
+### How the key is wired (base64 in `.env`)
+
+Instead of shipping the JSON file, we encode it into a single env var — cleaner for
+Azure app settings / CI secrets, and the code reads it directly:
 
 ```bash
-GOOGLE_CLOUD_PROJECT=bloom-salon-prod
-GOOGLE_APPLICATION_CREDENTIALS=/secrets/firestore-sa.json   # path to the JSON key
+# 1) encode the key to one base64 line
+base64 -i google-services.json | tr -d '\n'
+
+# 2) put the output in .env
+GOOGLE_CLOUD_PROJECT=salon-agent-392ac
+FIREBASE_SERVICE_ACCOUNT_BASE64=<paste the base64 here>
+# and leave FIRESTORE_EMULATOR_HOST commented out so host commands hit the real DB
 ```
 
-On Azure, mount the JSON as a secret file (or App Service secret) and point
-`GOOGLE_APPLICATION_CREDENTIALS` at it. The code path in `src/config/firestore.ts`
-is identical to local — only the env vars change.
+`.env` is loaded automatically (via `dotenv`) by `npm run dev`, `npm start`,
+`npm run seed`, and `npm run test:firestore`. Decoding lives in
+`src/config/firestore.ts`.
+
+> ✅ This is already set up in this repo: the key from `google-services.json` has
+> been base64-encoded into `.env`, and `npm run test:firestore` confirms a live
+> read/write against `salon-agent-392ac`.
+
+### Verify + populate
+
+```bash
+npm run test:firestore   # writes/reads/deletes a temp doc; prints the target mode
+npm run dev              # boots against the real DB; auto-seeds Bloom Salon if empty
+```
+
+> Alternative to base64: mount the JSON file and set
+> `GOOGLE_APPLICATION_CREDENTIALS=/secrets/firestore-sa.json` — `firestore.ts`
+> supports both. Only env vars change between local and prod.
 
 > Firestore composite-index note: the current queries filter/sort mostly in memory
 > to avoid index setup. If you move heavy filtering into Firestore queries later,
@@ -150,13 +182,31 @@ is identical to local — only the env vars change.
 
 ---
 
-## Optional email (real sends)
+## Notifications — confirmation email (Brevo / SMTP)
 
-Defaults to a console provider that logs the rendered message. For real email:
+Bookee confirmations are **email only**. They go through a pluggable provider
+(`src/providers/notification.ts`); default is a **console** provider that logs the
+rendered message. Switch with `NOTIFY_PROVIDER`:
+
+### Brevo (recommended)
+
+```bash
+NOTIFY_PROVIDER=brevo
+BREVO_API_KEY=xkeysib-xxxxxxxx               # Brevo dashboard -> SMTP & API -> API Keys
+BREVO_SENDER_EMAIL=no-reply@yourdomain.com   # must be a VERIFIED sender/domain in Brevo
+BREVO_SENDER_NAME=Bloom Salon
+```
+
+Email uses Brevo's `POST /v3/smtp/email`. No extra npm dependency — it uses Node's
+built-in `fetch`. A failed send is recorded per-channel and **never** fails the booking.
+
+### SMTP (incl. Brevo's SMTP relay)
 
 ```bash
 NOTIFY_PROVIDER=smtp
-SMTP_HOST=... SMTP_PORT=587 SMTP_USER=... SMTP_PASS=... SMTP_FROM="Bloom Salon <no-reply@bloom.example>"
+SMTP_HOST=smtp-relay.brevo.com SMTP_PORT=587 SMTP_USER=<brevo login> SMTP_PASS=<brevo smtp key>
+SMTP_FROM="Bloom Salon <no-reply@bloom.example>"
 ```
 
-SMS is a stubbed provider with the interface in place.
+**What to share for Brevo:** the **API key** and a **verified sender email** (or verified
+domain). That's all I need to switch it on.

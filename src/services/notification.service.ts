@@ -3,12 +3,12 @@ import { ApiError } from '../lib/errors';
 import { dateToWords, timeToWords, referenceToWords } from '../lib/spoken';
 import { DateTime } from 'luxon';
 import { requireCompany } from './company.service';
-import { emailProvider, smsProvider, RenderedMessage } from '../providers/notification';
+import { emailProvider, RenderedMessage } from '../providers/notification';
 
 export interface ConfirmationInput {
   companyId: string;
   bookingId: string;
-  channels: ('email' | 'sms')[];
+  channels: 'email'[];
 }
 
 /** Render + dispatch a confirmation. A failed send never fails a booking. */
@@ -43,17 +43,14 @@ export async function sendConfirmation(input: ConfirmationInput) {
   const results: { channel: string; ok: boolean; detail: string }[] = [];
   for (const channel of input.channels) {
     try {
-      if (channel === 'email') {
-        if (!booking.customerEmail) {
-          results.push({ channel, ok: false, detail: 'no email on file' });
-          continue;
-        }
-        const r = await emailProvider().send({ ...rendered, to: booking.customerEmail });
-        results.push({ channel, ...r });
-      } else {
-        const r = await smsProvider().send({ ...rendered, to: booking.customerPhone });
-        results.push({ channel, ...r });
+      if (!booking.customerEmail) {
+        results.push({ channel, ok: false, detail: 'no email on file' });
+        continue;
       }
+      const r = await emailProvider().send({
+        ...rendered, to: booking.customerEmail, toName: booking.customerName,
+      });
+      results.push({ channel, ...r });
     } catch (e) {
       results.push({ channel, ok: false, detail: e instanceof Error ? e.message : 'send failed' });
     }

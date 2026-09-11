@@ -1,6 +1,7 @@
 // Seed the Bloom Salon tenant (companyId "salon-01"). Runs automatically on
 // first boot (see index.ts) and via `npm run seed` / POST /admin/seed.
 
+import 'dotenv/config'; // load .env for standalone `npm run seed`
 import { collections } from '../models/collections';
 import { Booking, Company, Service, Stylist, Block } from '../models/types';
 import { id, bookingReference } from '../lib/ids';

@@ -85,7 +85,7 @@ export const createMessageBody = z.object({
 export const confirmationBody = z.object({
   companyId: z.string().min(1),
   bookingId: z.string().min(1),
-  channels: z.array(z.enum(['email', 'sms'])).min(1),
+  channels: z.array(z.enum(['email'])).min(1).default(['email']),
 });
 
 export const resolveDateBody = z.object({

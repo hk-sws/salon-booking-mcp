@@ -134,7 +134,7 @@ run GET "$B/bookings/find?companyId=$CO&phone=9000000777"
 if [ "$CODE" = "200" ] && echo "$BODY" | grep -q "withinCancellationWindow"; then
   ok "GET /bookings/find (window computed)"; else no "bookings/find" show; fi
 
-run POST "$B/notifications/confirmation" "{\"companyId\":\"$CO\",\"bookingId\":\"$BID\",\"channels\":[\"email\",\"sms\"]}"
+run POST "$B/notifications/confirmation" "{\"companyId\":\"$CO\",\"bookingId\":\"$BID\",\"channels\":[\"email\"]}"
 expect 202 "POST /notifications/confirmation -> 202"
 
 run POST "$B/bookings/$BID/reschedule" "{\"companyId\":\"$CO\",\"date\":\"$S1_DATE\",\"start\":\"$S1_START\",\"stylistId\":\"$S1_STY\"}"

@@ -61,7 +61,7 @@ GET {{base}}/bookings/find?companyId={{companyId}}&phone=9000000001
 POST {{base}}/notifications/confirmation
 Content-Type: application/json
 
-{ "companyId": "salon-01", "bookingId": "REPLACE_WITH_bookingId", "channels": ["email", "sms"] }
+{ "companyId": "salon-01", "bookingId": "REPLACE_WITH_bookingId", "channels": ["email"] }
 
 ### Reschedule a booking
 POST {{base}}/bookings/REPLACE_WITH_bookingId/reschedule

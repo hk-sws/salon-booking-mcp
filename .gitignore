@@ -3,3 +3,8 @@ dist/
 .env
 *.log
 .firestore-emulator/
+
+# Secrets — never commit the service-account key
+google-services.json
+*service-account*.json
+*-sa.json

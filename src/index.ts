@@ -1,3 +1,4 @@
+import 'dotenv/config'; // load .env before anything reads process.env
 import { createApp } from './app';
 import { firestoreMode } from './config/firestore';
 import { seedSalon, isSeeded } from './db/seed';

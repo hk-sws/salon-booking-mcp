@@ -3,7 +3,6 @@ import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import api from './routes';
 import { swaggerSpec } from './config/swagger';
-import { rateLimiter } from './middleware/rateLimit';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 
 export function createApp() {
@@ -21,8 +20,6 @@ export function createApp() {
     });
     next();
   });
-
-  app.use(rateLimiter);
 
   // Swagger UI + raw spec.
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

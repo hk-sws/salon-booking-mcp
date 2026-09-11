@@ -135,15 +135,15 @@
     },
     {
       "name": "send_confirmation",
-      "description": "Send the caller a confirmation message after a successful booking. Call this once, after create_booking succeeds. A failure here does not undo the booking.",
+      "description": "Send the caller a confirmation email after a successful booking. Call this once, after create_booking succeeds. A failure here does not undo the booking.",
       "parameters": {
         "type": "object",
         "properties": {
           "companyId": { "type": "string" },
           "bookingId": { "type": "string" },
-          "channels": { "type": "array", "items": { "type": "string", "enum": ["email", "sms"] } }
+          "channels": { "type": "array", "items": { "type": "string", "enum": ["email"] }, "default": ["email"] }
         },
-        "required": ["companyId", "bookingId", "channels"]
+        "required": ["companyId", "bookingId"]
       }
     },
     {
