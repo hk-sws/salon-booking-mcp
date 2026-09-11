@@ -8,13 +8,14 @@
 import { Request, Response, NextFunction } from 'express';
 import { collections } from '../models/collections';
 import { DateTime } from 'luxon';
+import { COMPANY_ID } from '../config/tenant';
 
 const TTL_HOURS = 24;
 
 export function idempotency(endpoint: string) {
   return async (req: Request, res: Response, next: NextFunction) => {
     const key = req.header('Idempotency-Key');
-    const companyId = (req.body && req.body.companyId) || 'unknown';
+    const companyId = COMPANY_ID;
 
     if (!key) {
       // No key: proceed without replay protection but keep the API shape.

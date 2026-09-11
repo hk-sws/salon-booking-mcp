@@ -25,9 +25,8 @@ const router = Router();
  *         application/json:
  *           schema:
  *             type: object
- *             required: [companyId, serviceId, stylistId, date, start, customer]
+ *             required: [serviceId, stylistId, date, start, customer]
  *             properties:
- *               companyId: { type: string, example: salon-01 }
  *               serviceId: { type: string, example: svc_highlights }
  *               stylistId: { type: string, example: sty_priya }
  *               date: { type: string, example: '2026-09-15' }
@@ -54,7 +53,6 @@ router.post('/bookings',
  *     tags: [Bookings]
  *     summary: Upcoming confirmed bookings for a phone number (or exact reference).
  *     parameters:
- *       - $ref: '#/components/parameters/companyId'
  *       - { name: phone, in: query, schema: { type: string } }
  *       - { name: reference, in: query, schema: { type: string } }
  *     responses:
@@ -78,9 +76,8 @@ router.get('/bookings/find',
  *         application/json:
  *           schema:
  *             type: object
- *             required: [companyId, reason]
+ *             required: [reason]
  *             properties:
- *               companyId: { type: string }
  *               reason: { type: string }
  *     responses:
  *       200: { description: Cancelled }
@@ -104,9 +101,8 @@ router.post('/bookings/:id/cancel',
  *         application/json:
  *           schema:
  *             type: object
- *             required: [companyId, date, start, stylistId]
+ *             required: [date, start, stylistId]
  *             properties:
- *               companyId: { type: string }
  *               date: { type: string }
  *               start: { type: string }
  *               stylistId: { type: string }

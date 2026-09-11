@@ -1,8 +1,9 @@
 # Salon Voice-Agent Booking API
 
-Multi-tenant REST backend for LiveKit voice agents. First tenant is **Bloom Salon**,
-but every endpoint is scoped by `companyId`, so the same deployment serves any
-appointment-based business without code changes.
+REST backend for LiveKit voice agents, serving **Bloom Salon**. The tenant id is
+**hardcoded server-side** (`salon-01`, in `src/config/tenant.ts`) and injected into
+every call — no endpoint accepts or requires `companyId`. Data is still stored
+per-company internally, so it can be made multi-tenant later without a rewrite.
 
 - **Node 20 + Express + TypeScript**
 - **Google Cloud Firestore** — Firestore **emulator** locally (in Docker), real
@@ -58,7 +59,7 @@ docker compose up --build
 
 On first boot the DB is empty, so the app **auto-seeds** Bloom Salon (9 services,
 4 stylists, ~15 bookings, 1 stylist-holiday block). Set `SEED_ON_START=false` to
-skip. Re-seed anytime with `POST /api/v1/admin/seed?companyId=salon-01`.
+skip. Re-seed anytime with `POST /api/v1/admin/seed`.
 
 ### Expose it publicly (ngrok)
 

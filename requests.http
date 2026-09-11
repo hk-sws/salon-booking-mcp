@@ -1,41 +1,41 @@
 ### Worked example of every endpoint. Use with the VS Code REST Client
 ### extension, or translate to curl. Base URL assumes local dev.
+### companyId is hardcoded server-side (salon-01) — no request sends it.
 
 @base = http://localhost:3000/api/v1
-@companyId = salon-01
 
 ### Health
 GET http://localhost:3000/api/v1/health
 
 ### Business info
-GET {{base}}/business?companyId={{companyId}}
+GET {{base}}/business
 
 ### Services (all)
-GET {{base}}/services?companyId={{companyId}}
+GET {{base}}/services
 
 ### Services (phone-bookable only)
-GET {{base}}/services?companyId={{companyId}}&bookableOnly=true
+GET {{base}}/services?bookableOnly=true
 
 ### Stylists
-GET {{base}}/stylists?companyId={{companyId}}
+GET {{base}}/stylists
 
 ### Stylists who do highlights
-GET {{base}}/stylists?companyId={{companyId}}&serviceId=svc_highlights
+GET {{base}}/stylists?serviceId=svc_highlights
 
 ### Resolve a spoken date phrase
 POST {{base}}/resolve-date
 Content-Type: application/json
 
-{ "companyId": "salon-01", "phrase": "next Thursday" }
+{ "phrase": "next Thursday" }
 
 ### Availability for a single date across all qualified stylists
-GET {{base}}/availability?companyId={{companyId}}&serviceId=svc_haircut&date=2026-09-15
+GET {{base}}/availability?serviceId=svc_haircut&date=2026-09-15
 
 ### Availability over a range, mornings only, one stylist
-GET {{base}}/availability?companyId={{companyId}}&serviceId=svc_highlights&dateFrom=2026-09-15&dateTo=2026-09-20&stylistId=sty_priya&partOfDay=morning
+GET {{base}}/availability?serviceId=svc_highlights&dateFrom=2026-09-15&dateTo=2026-09-20&stylistId=sty_priya&partOfDay=morning
 
 ### Availability for a service that is not phone-bookable -> 403
-GET {{base}}/availability?companyId={{companyId}}&serviceId=svc_bridal&date=2026-09-15
+GET {{base}}/availability?serviceId=svc_bridal&date=2026-09-15
 
 ### Create a booking (idempotent)
 # @name createBooking
@@ -44,7 +44,6 @@ Content-Type: application/json
 Idempotency-Key: demo-key-001
 
 {
-  "companyId": "salon-01",
   "serviceId": "svc_haircut",
   "stylistId": "sty_ramesh",
   "date": "2026-09-16",
@@ -55,43 +54,43 @@ Idempotency-Key: demo-key-001
 }
 
 ### Find bookings by phone
-GET {{base}}/bookings/find?companyId={{companyId}}&phone=9000000001
+GET {{base}}/bookings/find?phone=9000000001
 
 ### Send a confirmation
 POST {{base}}/notifications/confirmation
 Content-Type: application/json
 
-{ "companyId": "salon-01", "bookingId": "REPLACE_WITH_bookingId", "channels": ["email"] }
+{ "bookingId": "REPLACE_WITH_bookingId", "channels": ["email"] }
 
 ### Reschedule a booking
 POST {{base}}/bookings/REPLACE_WITH_bookingId/reschedule
 Content-Type: application/json
 
-{ "companyId": "salon-01", "date": "2026-09-17", "start": "12:00", "stylistId": "sty_ramesh" }
+{ "date": "2026-09-17", "start": "12:00", "stylistId": "sty_ramesh" }
 
 ### Cancel a booking
 POST {{base}}/bookings/REPLACE_WITH_bookingId/cancel
 Content-Type: application/json
 
-{ "companyId": "salon-01", "reason": "Caller cancelled by phone" }
+{ "reason": "Caller cancelled by phone" }
 
 ### Escalation message
 POST {{base}}/messages
 Content-Type: application/json
 
-{ "companyId": "salon-01", "category": "bridal", "name": "Meera", "phone": "9000000001", "note": "Wants bridal package for a December wedding" }
+{ "category": "bridal", "name": "Meera", "phone": "9000000001", "note": "Wants bridal package for a December wedding" }
 
 ### Admin: bookings
-GET {{base}}/admin/bookings?companyId={{companyId}}&status=confirmed
+GET {{base}}/admin/bookings?status=confirmed
 
 ### Admin: open messages
-GET {{base}}/admin/messages?companyId={{companyId}}&status=open
+GET {{base}}/admin/messages?status=open
 
 ### Admin: add a block (holiday)
 POST {{base}}/admin/blocks
 Content-Type: application/json
 
-{ "companyId": "salon-01", "stylistId": "sty_priya", "startAt": "2026-09-20T04:30:00.000Z", "endAt": "2026-09-20T14:30:00.000Z", "reason": "Priya on leave" }
+{ "stylistId": "sty_priya", "startAt": "2026-09-20T04:30:00.000Z", "endAt": "2026-09-20T14:30:00.000Z", "reason": "Priya on leave" }
 
 ### Admin: reset seed data
-POST {{base}}/admin/seed?companyId={{companyId}}
+POST {{base}}/admin/seed

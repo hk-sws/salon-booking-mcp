@@ -12,13 +12,6 @@ export const swaggerSpec = swaggerJsdoc({
     },
     servers: [{ url: '/api/v1' }],
     components: {
-      parameters: {
-        companyId: {
-          name: 'companyId', in: 'query', required: true,
-          schema: { type: 'string', example: 'salon-01' },
-          description: 'Tenant id. Every endpoint is scoped by it.',
-        },
-      },
       headers: {
         IdempotencyKey: {
           description: 'Replay-safe key for POST retries.',

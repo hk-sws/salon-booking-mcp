@@ -2,36 +2,36 @@
 
 import { Request, Response } from 'express';
 import { cacheGet, cacheSet } from '../lib/cache';
+import { COMPANY_ID } from '../config/tenant';
 import { getBusinessInfo } from '../services/company.service';
 import { listServices } from '../services/service.service';
 import { listStylists } from '../services/stylist.service';
 
 export async function getBusiness(_req: Request, res: Response) {
-  const { companyId } = res.locals.query;
-  const key = `business:${companyId}`;
+  const key = `business:${COMPANY_ID}`;
   const cached = cacheGet(key);
   if (cached) return res.json(cached);
-  const data = await getBusinessInfo(companyId);
+  const data = await getBusinessInfo(COMPANY_ID);
   cacheSet(key, data);
   res.json(data);
 }
 
 export async function getServices(_req: Request, res: Response) {
-  const { companyId, bookableOnly } = res.locals.query;
-  const key = `services:${companyId}:${bookableOnly ? 'bookable' : 'all'}`;
+  const { bookableOnly } = res.locals.query;
+  const key = `services:${COMPANY_ID}:${bookableOnly ? 'bookable' : 'all'}`;
   const cached = cacheGet(key);
   if (cached) return res.json(cached);
-  const data = await listServices(companyId, bookableOnly);
+  const data = await listServices(COMPANY_ID, bookableOnly);
   cacheSet(key, data);
   res.json(data);
 }
 
 export async function getStylists(_req: Request, res: Response) {
-  const { companyId, serviceId } = res.locals.query;
-  const key = `stylists:${companyId}:${serviceId ?? 'all'}`;
+  const { serviceId } = res.locals.query;
+  const key = `stylists:${COMPANY_ID}:${serviceId ?? 'all'}`;
   const cached = cacheGet(key);
   if (cached) return res.json(cached);
-  const data = await listStylists(companyId, serviceId);
+  const data = await listStylists(COMPANY_ID, serviceId);
   cacheSet(key, data);
   res.json(data);
 }

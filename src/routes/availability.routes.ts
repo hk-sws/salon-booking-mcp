@@ -16,7 +16,6 @@ const router = Router();
  *       Provide either `date`, or both `dateFrom` and `dateTo` (max 14-day span).
  *       Empty result is a 200 with a `nextAvailable` counter-offer.
  *     parameters:
- *       - $ref: '#/components/parameters/companyId'
  *       - { name: serviceId, in: query, required: true, schema: { type: string } }
  *       - { name: date, in: query, schema: { type: string, example: '2026-09-15' } }
  *       - { name: dateFrom, in: query, schema: { type: string } }

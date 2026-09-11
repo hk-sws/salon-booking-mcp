@@ -19,9 +19,8 @@ const router = Router();
  *         application/json:
  *           schema:
  *             type: object
- *             required: [companyId, category, name, phone, note]
+ *             required: [category, name, phone, note]
  *             properties:
- *               companyId: { type: string }
  *               category: { type: string, enum: [bridal, complaint, health_query, reschedule_late, other] }
  *               name: { type: string }
  *               phone: { type: string }
@@ -45,9 +44,8 @@ router.post('/messages',
  *         application/json:
  *           schema:
  *             type: object
- *             required: [companyId, bookingId]
+ *             required: [bookingId]
  *             properties:
- *               companyId: { type: string }
  *               bookingId: { type: string }
  *               channels: { type: array, items: { type: string, enum: [email] }, default: [email] }
  *     responses:
@@ -68,9 +66,8 @@ router.post('/notifications/confirmation',
  *         application/json:
  *           schema:
  *             type: object
- *             required: [companyId, phrase]
+ *             required: [phrase]
  *             properties:
- *               companyId: { type: string }
  *               phrase: { type: string, example: 'next Thursday' }
  *     responses:
  *       200: { description: Resolved date, or confident=false with clarifySpoken }
