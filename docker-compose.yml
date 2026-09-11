@@ -1,0 +1,34 @@
+# Local dev stack: Firestore emulator + the API.
+# No real GCP credentials are needed — the app talks to the emulator.
+services:
+  firestore:
+    image: google/cloud-sdk:emulators
+    command: >
+      gcloud emulators firestore start
+      --host-port=0.0.0.0:8080
+      --project=salon-mcp-local
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "cat < /dev/null > /dev/tcp/127.0.0.1/8080"]
+      interval: 3s
+      timeout: 2s
+      retries: 20
+
+  app:
+    build: .
+    depends_on:
+      firestore:
+        condition: service_healthy
+    environment:
+      - PORT=3000
+      - NODE_ENV=development
+      - SEED_ON_START=true
+      - GOOGLE_CLOUD_PROJECT=salon-mcp-local
+      - FIRESTORE_EMULATOR_HOST=firestore:8080
+    ports:
+      - "3000:3000"
+    # Live-reload the source during local dev.
+    volumes:
+      - ./src:/app/src
+    command: npm run dev

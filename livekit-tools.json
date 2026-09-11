@@ -1,0 +1,162 @@
+{
+  "tools": [
+    {
+      "name": "get_business_info",
+      "description": "Get the salon's opening hours, address, and walk-in policy. Call this when the caller asks where we are, when we are open, or whether they can walk in. Read the *Spoken fields aloud verbatim.",
+      "parameters": {
+        "type": "object",
+        "properties": { "companyId": { "type": "string" } },
+        "required": ["companyId"]
+      }
+    },
+    {
+      "name": "get_services",
+      "description": "List the services offered with prices and durations. Call this when the caller asks what we do, how much something costs, or how long it takes. Prices are starting prices; say so.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "companyId": { "type": "string" },
+          "bookableOnly": { "type": "boolean", "description": "Only services bookable by phone." }
+        },
+        "required": ["companyId"]
+      }
+    },
+    {
+      "name": "get_stylists",
+      "description": "List stylists and the services they perform. Call this when the caller asks who does a service or asks for someone by name. Never state availability from this; it has none.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "companyId": { "type": "string" },
+          "serviceId": { "type": "string" }
+        },
+        "required": ["companyId"]
+      }
+    },
+    {
+      "name": "check_availability",
+      "description": "Find open appointment slots. Call this before offering ANY day or time to the caller. Never state availability from memory. If it returns no slots, offer the nextAvailable it gives you.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "companyId": { "type": "string" },
+          "serviceId": { "type": "string" },
+          "date": { "type": "string", "description": "YYYY-MM-DD. Use resolve_date first if the caller spoke a phrase." },
+          "dateFrom": { "type": "string" },
+          "dateTo": { "type": "string" },
+          "stylistId": { "type": "string" },
+          "partOfDay": { "type": "string", "enum": ["morning", "afternoon", "evening"] },
+          "limit": { "type": "integer" }
+        },
+        "required": ["companyId", "serviceId"]
+      }
+    },
+    {
+      "name": "find_booking",
+      "description": "Look up a caller's upcoming bookings by phone number, or by reference for an exact match. Call this when the caller wants to change or ask about an existing appointment. Check withinCancellationWindow before offering to cancel.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "companyId": { "type": "string" },
+          "phone": { "type": "string" },
+          "reference": { "type": "string" }
+        },
+        "required": ["companyId"]
+      }
+    },
+    {
+      "name": "create_booking",
+      "description": "Book an appointment. Only call this AFTER check_availability confirmed the slot and the caller agreed. If it returns SLOT_TAKEN, offer the alternatives it returns; do not retry the same slot.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "companyId": { "type": "string" },
+          "serviceId": { "type": "string" },
+          "stylistId": { "type": "string" },
+          "date": { "type": "string" },
+          "start": { "type": "string" },
+          "customer": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "phone": { "type": "string" },
+              "email": { "type": "string" }
+            },
+            "required": ["name", "phone"]
+          },
+          "notes": { "type": "string" }
+        },
+        "required": ["companyId", "serviceId", "stylistId", "date", "start", "customer"]
+      }
+    },
+    {
+      "name": "cancel_booking",
+      "description": "Cancel an existing booking by its id. If it returns WITHIN_CANCELLATION_WINDOW, do NOT insist; instead call create_message to escalate as the action hint says.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "bookingId": { "type": "string" },
+          "companyId": { "type": "string" },
+          "reason": { "type": "string" }
+        },
+        "required": ["bookingId", "companyId", "reason"]
+      }
+    },
+    {
+      "name": "reschedule_booking",
+      "description": "Move an existing booking to a new slot. Call check_availability for the new time first. Same cancellation-window rule as cancel_booking applies.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "bookingId": { "type": "string" },
+          "companyId": { "type": "string" },
+          "date": { "type": "string" },
+          "start": { "type": "string" },
+          "stylistId": { "type": "string" }
+        },
+        "required": ["bookingId", "companyId", "date", "start", "stylistId"]
+      }
+    },
+    {
+      "name": "create_message",
+      "description": "Take a message for the team when something is out of scope: bridal enquiries, complaints, scalp or health questions, or a late cancellation the system refused. Confirm to the caller that someone will call back.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "companyId": { "type": "string" },
+          "category": { "type": "string", "enum": ["bridal", "complaint", "health_query", "reschedule_late", "other"] },
+          "name": { "type": "string" },
+          "phone": { "type": "string" },
+          "email": { "type": "string" },
+          "note": { "type": "string" }
+        },
+        "required": ["companyId", "category", "name", "phone", "note"]
+      }
+    },
+    {
+      "name": "send_confirmation",
+      "description": "Send the caller a confirmation message after a successful booking. Call this once, after create_booking succeeds. A failure here does not undo the booking.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "companyId": { "type": "string" },
+          "bookingId": { "type": "string" },
+          "channels": { "type": "array", "items": { "type": "string", "enum": ["email", "sms"] } }
+        },
+        "required": ["companyId", "bookingId", "channels"]
+      }
+    },
+    {
+      "name": "resolve_date",
+      "description": "Turn a spoken date phrase like 'next Thursday' or 'the day after tomorrow' into a calendar date. Call this BEFORE check_availability whenever the caller does not give an exact date. Never compute dates yourself. If confident is false, read clarifySpoken back to the caller.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "companyId": { "type": "string" },
+          "phrase": { "type": "string" }
+        },
+        "required": ["companyId", "phrase"]
+      }
+    }
+  ]
+}
