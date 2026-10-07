@@ -7,8 +7,6 @@ services:
       gcloud emulators firestore start
       --host-port=0.0.0.0:8080
       --project=salon-mcp-local
-    ports:
-      - "8080:8080"
     healthcheck:
       test: ["CMD", "bash", "-c", "cat < /dev/null > /dev/tcp/127.0.0.1/8080"]
       interval: 3s
